@@ -102,7 +102,13 @@ Equity 合约程序由一个用 `contract` 关键字定义的合约(contract)构
 
 - `clause` _ClauseName_ `(` _parameters_ `)` `requires` _name_ `:` _amount_ `of` _asset_
 
-在这里，_name_ 是标识符，表示支付的 value 的名称。_amount_ 是 `Amount` 数据类型的[表达式 (expressions)](#表达式-expressions)。而 _asset_ 是 `Asset` 数据类型的表达式。
+具体来讲：
+
+* _name_ 是标识符，表示支付的 value 的名称。
+
+* _amount_ 是 `Amount` 数据类型的[表达式 (expressions)](#表达式-expressions)。
+
+* _asset_ 是 `Asset` 数据类型的表达式。
 
 还有的 clause 需要支付两种或更多种的 value 才能解锁合约。这时，可以在 `requires` 后按这种格式来写：
 
@@ -297,8 +303,8 @@ contract LoanCollateral(assetLoaned: Asset,
 - `repay()` 不需要传入数据，但需要支付与 `amountLoaned` 等量的资产 `assetLoaned`
 - `default()` 既不需要传入数据，也不需要支付资产
 
-合约的含义是：贷方 `lender` 在借方 `borrower` 已出具抵押物 `collateral` 的情况下，将与 `amountLoaned` 等量的资产 `assetLoaned` 借给借方。如果贷款被偿还给贷方，则将抵押物退还给借方。但是，如果还款截止时间已过，则贷方有权为自己索取抵押物。
+合约的含义是：贷方 `lender` 与借方 `borrower` 以原子交易的形式进行抵押贷款，即用抵押物换取某种资产。在贷方收到所需的数量的资产 `assetLoaned` 的同时，将抵押物 `collateral` 的所有权交给借方。但是，如果交易的截止时间已过，则贷方有权将抵押物收回。
 
-`repay()` 条款函数通过两个简单的 `lock` 语句将付款发送给贷方，且将抵押物发送给借方。回想一下，向区块链参与者发送 value，其实就是将 value 锁定至允许接收者解锁的 program。
+`repay()` 条款函数通过两个简单的 `lock` 语句将 `collateral` 发送给贷方，且将 `assetLoaned` 发送给借方。回想一下，向区块链参与者发送 value，其实就是将 value 锁定至允许接收者解锁的 program。
 
 `default()` 条款函数的 `verify` 语句确保在截止区块高度已过时，可以将抵押物 `collateral` 锁定给贷方 `lender`。需要注意的是，这一过程并不是在截止时间到达的时刻自动发生的。贷方(或某个人)必须构造一个调用 `LoanCollateral` 合约的 `default()` 条款的交易，才能解锁抵押物 `collateral` 并将其重新锁定给 `lender`。
